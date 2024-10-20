@@ -8,7 +8,7 @@ window.onload = function () {
     const bgMusic = document.getElementById("bg-music");
   bgMusic.volume = 0.5;
   bgMusic.play();
-    window.location.href = "index.html";
+    window.location.href = "game.html";
   });
   
   document.querySelector(".about-btn").addEventListener("click", function () {
