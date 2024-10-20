@@ -25,16 +25,21 @@ class Example extends Phaser.Scene {
         this.load.image('g2_png', 'https://play.rosebud.ai/assets/g2.png?YG6M');
         this.load.image('g3_png', 'https://play.rosebud.ai/assets/g3.png?9wrQ');
         this.load.image('g4_png', 'https://play.rosebud.ai/assets/g4.png?tgso');
+        this.load.audio('turn_sound', 'https://play.rosebud.ai/assets/turn.mp3?pQJW');
+        this.load.image('background', 'https://play.rosebud.ai/assets/bg.jpg?Gnp4');
+        this.load.image('green_particle', 'https://play.rosebud.ai/assets/green_particle.png?qfzY');
     }
     create() {
-        this.cameras.main.setBackgroundColor('#000000');
+        // Add background image
+        const bg = this.add.image(0, 0, 'background');
+        bg.setOrigin(0, 0);
+        bg.setDisplaySize(this.cameras.main.width, this.cameras.main.height);
         const margin = 0.1;
         const availableWidth = this.cameras.main.width * (1 - 2 * margin);
         const availableHeight = this.cameras.main.height * (1 - 2 * margin);
         this.squareSize = Math.min(availableWidth, availableHeight) / this.gridSize;
         this.startX = (this.cameras.main.width - this.squareSize * this.gridSize) / 2;
         this.startY = (this.cameras.main.height - this.squareSize * this.gridSize) / 2;
-
         // Ensure the sound is loaded
         if (!this.sound.get('place_sound')) {
             console.error('Sound "place_sound" not loaded');
@@ -48,6 +53,18 @@ class Example extends Phaser.Scene {
                 this.updateSquareVisual(row, col);
             }
         }
+
+        // Set up custom cursor
+        this.input.setDefaultCursor('default');
+        this.greenCursor = this.add.image(0, 0, 'green_particle');
+        this.greenCursor.setScale(0.2); // Make the cursor smaller
+        this.greenCursor.setVisible(false);
+        this.greenCursor.setDepth(1000); // Ensure it's on top of other elements
+        this.input.on('pointermove', (pointer) => {
+            this.greenCursor.setPosition(pointer.x, pointer.y);
+        });
+        // Initial cursor update
+        this.updateCursor();
     }
     createGrid() {
         for (let row = 0; row < this.gridSize; row++) {
@@ -89,6 +106,11 @@ class Example extends Phaser.Scene {
         const square = this.grid[row][col];
         if (square.owner === null || square.owner === this.currentPlayer) {
             this.sound.play('place_sound');
+            this.sound.once('complete', (sound) => {
+                if (sound.key === 'place_sound') {
+                    this.sound.play('turn_sound');
+                }
+            });
             this.addParticle(row, col);
         }
     }
@@ -210,6 +232,22 @@ class Example extends Phaser.Scene {
     }
     switchPlayer() {
         this.currentPlayer = this.currentPlayer === 'red' ? 'blue' : 'red';
+        this.updateCursor();
+    }
+    updateCursor() {
+        if (this.currentPlayer === 'blue') {
+            this.input.setDefaultCursor('none');
+            this.greenCursor.setVisible(true);
+            // Adjust the cursor position to center it on the pointer
+            this.input.on('pointermove', (pointer) => {
+                this.greenCursor.setPosition(pointer.x, pointer.y);
+            });
+        } else {
+            this.input.setDefaultCursor('default');
+            this.greenCursor.setVisible(false);
+            // Remove the pointermove listener when not using the custom cursor
+            this.input.off('pointermove');
+        }
     }
     updateScoreText() {
         this.redScoreText.setText(`Red: ${this.scores.red}`);
@@ -219,9 +257,15 @@ class Example extends Phaser.Scene {
         if (this.scores.red >= 10 || this.scores.blue >= 10) {
             this.scene.pause();
             const winner = this.scores.red >= 10 ? 'Red' : 'Blue';
-            this.add.text(400, 300, `${winner} wins!`, {
-                fontSize: '64px',
-                fill: '#ffffff'
+            const textColor = winner === 'Red' ? '#ff0000' : '#00ff00';
+            const message = winner === 'Red' ? 'GGs player red you are the best uwu' : 'GGs player green you are the best uwu';
+            this.add.text(400, 300, message, {
+                fontSize: '48px',
+                fill: textColor,
+                align: 'center',
+                wordWrap: {
+                    width: 600
+                }
             }).setOrigin(0.5);
         }
     }

@@ -5,6 +5,9 @@ window.onload = function () {
   };
   
   document.querySelector(".start-btn").addEventListener("click", function () {
+    const bgMusic = document.getElementById("bg-music");
+  bgMusic.volume = 0.5;
+  bgMusic.play();
     window.location.href = "index.html";
   });
   
