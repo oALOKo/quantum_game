@@ -28,6 +28,7 @@ class Example extends Phaser.Scene {
         this.load.audio('turn_sound', 'https://play.rosebud.ai/assets/turn.mp3?pQJW');
         this.load.image('background', 'https://play.rosebud.ai/assets/bg.jpg?Gnp4');
         this.load.image('green_particle', 'https://play.rosebud.ai/assets/green_particle.png?qfzY');
+        this.load.image('red_particle', 'https://play.rosebud.ai/assets/red_particle.png?FrOK');
     }
     create() {
         // Add background image
@@ -54,14 +55,19 @@ class Example extends Phaser.Scene {
             }
         }
 
-        // Set up custom cursor
+        // Set up custom cursors
         this.input.setDefaultCursor('default');
         this.greenCursor = this.add.image(0, 0, 'green_particle');
-        this.greenCursor.setScale(0.2); // Make the cursor smaller
+        this.redCursor = this.add.image(0, 0, 'red_particle');
+        this.greenCursor.setScale(0.2); // Make the green cursor smaller
+        this.redCursor.setScale(0.075); // Make the red cursor 50% smaller than before
         this.greenCursor.setVisible(false);
+        this.redCursor.setVisible(false);
         this.greenCursor.setDepth(1000); // Ensure it's on top of other elements
+        this.redCursor.setDepth(1000); // Ensure it's on top of other elements
         this.input.on('pointermove', (pointer) => {
             this.greenCursor.setPosition(pointer.x, pointer.y);
+            this.redCursor.setPosition(pointer.x, pointer.y);
         });
         // Initial cursor update
         this.updateCursor();
@@ -235,18 +241,13 @@ class Example extends Phaser.Scene {
         this.updateCursor();
     }
     updateCursor() {
+        this.input.setDefaultCursor('none');
         if (this.currentPlayer === 'blue') {
-            this.input.setDefaultCursor('none');
             this.greenCursor.setVisible(true);
-            // Adjust the cursor position to center it on the pointer
-            this.input.on('pointermove', (pointer) => {
-                this.greenCursor.setPosition(pointer.x, pointer.y);
-            });
+            this.redCursor.setVisible(false);
         } else {
-            this.input.setDefaultCursor('default');
             this.greenCursor.setVisible(false);
-            // Remove the pointermove listener when not using the custom cursor
-            this.input.off('pointermove');
+            this.redCursor.setVisible(true);
         }
     }
     updateScoreText() {
